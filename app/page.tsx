@@ -23,8 +23,8 @@ export default async function Home() {
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 Welcome to ExpenseSplitter
               </h1>
-              <p className="text-lg text-gray-600">
-                The easiest way to split expenses with friends, roommates, and groups
+              <p className="text-xl text-gray-600 mb-8">
+                The easiest way to split expenses with roommates and groups
               </p>
             </div>
 

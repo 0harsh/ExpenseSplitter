@@ -9,10 +9,16 @@ interface User {
   username: string;
 }
 
+interface GroupMember {
+  id: string;
+  userId: string;
+  user: User;
+}
+
 interface Group {
   id: string;
   name: string;
-  members: User[];
+  members: GroupMember[];
 }
 
 interface CreateExpenseFormProps {
@@ -37,8 +43,8 @@ export default function CreateExpenseForm({ groups, onClose }: CreateExpenseForm
     if (selectedGroup && splitType === 'equal') {
       const equalAmount = selectedGroup.members.length > 0 ? parseFloat(amount) / selectedGroup.members.length : 0;
       setCustomSplits(
-        selectedGroup.members.map(user => ({
-          userId: user.id,
+        selectedGroup.members.map(member => ({
+          userId: member.user.id,
           amount: equalAmount.toFixed(2),
           percentage: ((1 / selectedGroup.members.length) * 100).toFixed(2)
         }))
@@ -219,14 +225,14 @@ export default function CreateExpenseForm({ groups, onClose }: CreateExpenseForm
                 </label>
               </div>
 
-              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3">
-                {customSplits.map((split) => {
-                  const user = selectedGroup.members.find(u => u.id === split.userId);
-                  return (
-                    <div key={split.userId} className="flex items-center space-x-3">
-                      <span className="w-24 text-sm font-medium">
-                        {user?.name || user?.username}
-                      </span>
+                             <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3">
+                 {customSplits.map((split) => {
+                   const member = selectedGroup.members.find(m => m.user.id === split.userId);
+                   return (
+                     <div key={split.userId} className="flex items-center space-x-3">
+                       <span className="w-24 text-sm font-medium">
+                         {member?.user.name || member?.user.username}
+                       </span>
                       <input
                         type="number"
                         value={split.amount}

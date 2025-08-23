@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
-import { getCurrentUser } from '@/app/lib/auth';
+import { getCurrentUser } from '@/app/lib/serverAuth';
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const { title, description, amount, date, groupId, splits } = await request.json();
 
@@ -37,7 +34,7 @@ export async function POST(request: NextRequest) {
           select: { id: true, name: true, username: true }
         },
         group: {
-          select: { id: true, name: true }
+          select: { id: true, name: true, members: { include: { user: { select: { id: true, name: true, username: true } } } } }
         },
         splits: {
           include: {
@@ -51,6 +48,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(expense);
   } catch (error) {
+    if (error instanceof Error && error.message.includes('authentication')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error creating expense:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -59,9 +59,6 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const { searchParams } = new URL(request.url);
     const groupId = searchParams.get('groupId');
@@ -70,7 +67,7 @@ export async function GET(request: NextRequest) {
       group: {
         members: {
           some: {
-            id: user.id
+            userId: user.id
           }
         }
       }
@@ -87,7 +84,7 @@ export async function GET(request: NextRequest) {
           select: { id: true, name: true, username: true }
         },
         group: {
-          select: { id: true, name: true }
+          select: { id: true, name: true, members: { include: { user: { select: { id: true, name: true, username: true } } } } }
         },
         splits: {
           include: {
@@ -104,6 +101,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(expenses);
   } catch (error) {
+    if (error instanceof Error && error.message.includes('authentication')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error fetching expenses:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

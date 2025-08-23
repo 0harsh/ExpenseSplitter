@@ -49,4 +49,11 @@ export function authCookieOptions() {
   };
 }
 
+// Utility function to clear auth cookie on client side
+export function clearAuthCookie() {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  }
+}
+
 

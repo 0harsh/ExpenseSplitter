@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { clearAuthCookie } from '@/app/lib/auth';
 
 interface User {
   id: string;
@@ -27,11 +28,17 @@ export default function UserProfile({ user }: UserProfileProps) {
       });
 
       if (res.ok) {
+        // Clear client-side cookie as well
+        clearAuthCookie();
         router.push('/login');
         router.refresh();
       }
     } catch (err) {
       console.error('Logout failed:', err);
+      // Still clear cookie and redirect even if logout fails
+      clearAuthCookie();
+      router.push('/login');
+      router.refresh();
     } finally {
       setLoading(false);
     }

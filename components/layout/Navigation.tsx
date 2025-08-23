@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { clearAuthCookie } from '@/app/lib/auth';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard' },
@@ -12,6 +16,43 @@ export default function Navigation() {
     { href: '/expenses', label: 'Expenses' },
     { href: '/settlements', label: 'Settlements' },
   ];
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    
+    setIsLoggingOut(true);
+    
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Clear client-side cookie as well
+        clearAuthCookie();
+        // Redirect to login page after successful logout
+        router.push('/login');
+        router.refresh();
+      } else {
+        console.error('Logout failed');
+        // Still redirect to login page even if logout fails
+        clearAuthCookie();
+        router.push('/login');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Redirect to login page even if there's an error
+      clearAuthCookie();
+      router.push('/login');
+      router.refresh();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -49,12 +90,13 @@ export default function Navigation() {
             >
               Profile
             </Link>
-            <Link
-              href="/api/auth/logout"
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 disabled:cursor-not-allowed"
             >
-              Logout
-            </Link>
+              {isLoggingOut ? 'Logging out...' : 'Logout'}
+            </button>
           </div>
         </div>
       </div>

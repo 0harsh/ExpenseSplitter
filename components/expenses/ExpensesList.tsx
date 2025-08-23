@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CreateExpenseForm from './CreateExpenseForm';
 
 interface User {
@@ -9,10 +9,16 @@ interface User {
   username: string;
 }
 
+interface GroupMember {
+  id: string;
+  userId: string;
+  user: User;
+}
+
 interface Group {
   id: string;
   name: string;
-  members: User[];
+  members: GroupMember[];
 }
 
 interface ExpenseSplit {
@@ -36,20 +42,59 @@ interface Expense {
   createdAt: string;
 }
 
-interface ExpensesListProps {
-  expenses: Expense[];
-  groups: Group[];
-}
-
-export default function ExpensesList({ expenses, groups }: ExpensesListProps) {
+export default function ExpensesList() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [expensesResponse, groupsResponse] = await Promise.all([
+        fetch('/api/expenses'),
+        fetch('/api/groups')
+      ]);
+
+      if (expensesResponse.ok) {
+        const expensesData = await expensesResponse.json();
+        setExpenses(expensesData);
+      }
+
+      if (groupsResponse.ok) {
+        const groupsData = await groupsResponse.json();
+        setGroups(groupsData);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredExpenses = selectedGroupId === 'all' 
     ? expenses 
     : expenses.filter(expense => expense.group.id === selectedGroupId);
 
   const totalAmount = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Expenses</h2>
+        </div>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-500 mt-2">Loading expenses...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

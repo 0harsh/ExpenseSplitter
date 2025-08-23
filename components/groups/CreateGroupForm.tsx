@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 interface User {
   id: string;
@@ -10,16 +9,35 @@ interface User {
 }
 
 interface CreateGroupFormProps {
-  users: User[];
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function CreateGroupForm({ users, onClose }: CreateGroupFormProps) {
+export default function CreateGroupForm({ onClose, onSuccess }: CreateGroupFormProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +58,7 @@ export default function CreateGroupForm({ users, onClose }: CreateGroupFormProps
       });
 
       if (response.ok) {
-        router.refresh();
+        onSuccess();
         onClose();
       } else {
         const error = await response.json();
@@ -101,20 +119,25 @@ export default function CreateGroupForm({ users, onClose }: CreateGroupFormProps
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Members
             </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3">
-              {users.map((user) => (
-                <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.id)}
-                    onChange={() => toggleUser(user.id)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm">
-                    {user.name || user.username}
-                  </span>
-                </label>
-              ))}
+            
+            {/* All Users Section */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-600">All Users</h4>
+              <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
+                {users.map((user) => (
+                  <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={() => toggleUser(user.id)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm">
+                      {user.name || user.username}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
