@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import CreateGroupForm from './CreateGroupForm';
 
 interface User {
@@ -96,49 +97,64 @@ export default function GroupsList() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {groups.map((group) => (
-            <div
-              key={group.id}
-              className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">{group.name}</h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                  {group._count.members} members
-                </span>
-              </div>
-              
-              {group.description && (
-                <p className="text-gray-600 mb-4 line-clamp-2">{group.description}</p>
-              )}
-              
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="font-medium">Created by:</span>
-                  <span className="ml-2">{group.creator.name || group.creator.username}</span>
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="divide-y divide-gray-200">
+            {groups.map((group) => (
+              <Link
+                key={group.id}
+                href={`/dashboard/groups/${group.id}`}
+                className="block hover:bg-gray-50 transition-colors duration-200"
+              >
+                <div className="px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-3">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {group.name}
+                        </h3>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          {group._count.members} members
+                        </span>
+                      </div>
+                      
+                      {group.description && (
+                        <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                          {group.description}
+                        </p>
+                      )}
+                      
+                      <div className="mt-2 flex items-center space-x-6 text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <span className="font-medium">Created by:</span>
+                          <span className="ml-1">{group.creator.name || group.creator.username}</span>
+                        </div>
+                        
+                        <div className="flex items-center">
+                          <span className="font-medium">Expenses:</span>
+                          <span className="ml-1">{group._count.expenses}</span>
+                        </div>
+                        
+                        <div className="flex items-center">
+                          <span className="font-medium">Created:</span>
+                          <span className="ml-1">
+                            {new Date(group.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="ml-4 flex-shrink-0">
+                      <div className="text-gray-400">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="font-medium">Expenses:</span>
-                  <span className="ml-2">{group._count.expenses}</span>
-                </div>
-                
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="font-medium">Created:</span>
-                  <span className="ml-2">
-                    {new Date(group.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-2">
-                <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors">
-                  View Details
-                </button>
-              </div>
-            </div>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 

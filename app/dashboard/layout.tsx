@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/app/lib/prisma';
 import { verifyAuthToken, authCookieOptions } from '@/app/lib/auth';
 import Navigation from '@/components/layout/Navigation';
-import UserProfile from '@/components/auth/UserProfile';
 
 export default async function DashboardLayout({
   children,
@@ -32,34 +31,8 @@ export default async function DashboardLayout({
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                  <p className="text-gray-600">Welcome to ExpenseSplitter</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-500">
-                    Welcome, {user.name || user.username}!
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* User Profile */}
-              <div className="lg:col-span-1">
-                <UserProfile user={user} />
-              </div>
-
-              {/* Main Content */}
-              <div className="lg:col-span-2 space-y-6">
-                {children}
-              </div>
-            </div>
-          </div>
+        <div className="min-h-screen bg-gray-50 pt-16">
+          {children}
         </div>
       </>
     );
