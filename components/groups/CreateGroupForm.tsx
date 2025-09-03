@@ -29,13 +29,13 @@ export default function CreateGroupForm({ onClose, onSuccess, inline = false }: 
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users');
+      const response = await fetch('/api/users/friends');
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching friends:', error);
     } finally {
       setLoadingUsers(false);
     }
@@ -160,14 +160,14 @@ export default function CreateGroupForm({ onClose, onSuccess, inline = false }: 
               Select Members
             </label>
             
-            {/* All Users Section */}
+            {/* Friends Section */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-600">All Users</h4>
+              <h4 className="text-sm font-medium text-gray-600">Your Friends</h4>
               <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
                 {loadingUsers ? (
-                  <div className="text-sm text-gray-500">Loading users...</div>
+                  <div className="text-sm text-gray-500">Loading friends...</div>
                 ) : users.length === 0 ? (
-                  <div className="text-sm text-gray-500">No users found</div>
+                  <div className="text-sm text-gray-500">No friends found. Add friends first to create groups.</div>
                 ) : (
                   users.map((user) => (
                     <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
@@ -249,23 +249,29 @@ export default function CreateGroupForm({ onClose, onSuccess, inline = false }: 
               Select Members
             </label>
             
-            {/* All Users Section */}
+            {/* Friends Section */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-600">All Users</h4>
+              <h4 className="text-sm font-medium text-gray-600">Your Friends</h4>
               <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-3">
-                {users.map((user) => (
-                  <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => toggleUser(user.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm">
-                      {user.name || user.username}
-                    </span>
-                  </label>
-                ))}
+                {loadingUsers ? (
+                  <div className="text-sm text-gray-500">Loading friends...</div>
+                ) : users.length === 0 ? (
+                  <div className="text-sm text-gray-500">No friends found. Add friends first to create groups.</div>
+                ) : (
+                  users.map((user) => (
+                    <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => toggleUser(user.id)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm">
+                        {user.name || user.username}
+                      </span>
+                    </label>
+                  ))
+                )}
               </div>
             </div>
           </div>

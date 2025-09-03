@@ -1,0 +1,1 @@
+-- Make Quick Debt Resolver feature which uses greedy algo to resolve debts in minimum transactions.

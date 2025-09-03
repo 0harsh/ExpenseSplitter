@@ -119,36 +119,47 @@ export default function GroupPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <GroupHeader 
-        group={group} 
-        onAddExpense={handleAddExpense} 
-      />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <GroupStats 
-            group={group} 
-            totalExpenses={totalExpenses} 
-          />
-        </div>
-        <div>
-          <DebtTracker 
-            groupId={groupId}
-            currentUserId={currentUserId}
-          />
-        </div>
+      {/* Header */}
+      <div className="mb-8">
+        <GroupHeader 
+          group={group} 
+          onAddExpense={handleAddExpense} 
+        />
       </div>
       
-      <GroupMembers 
-        members={group.members} 
-        creatorId={group.creator.id} 
-      />
+      {/* Group Stats */}
+      <div className="mb-8">
+        <GroupStats 
+          group={group} 
+          totalExpenses={totalExpenses} 
+        />
+      </div>
       
-      <ExpensesList 
-        expenses={expenses} 
-        onAddExpense={handleAddExpense} 
-      />
+      {/* Group Members */}
+      <div className="mb-8">
+        <GroupMembers 
+          members={group.members} 
+          creatorId={group.creator.id} 
+        />
+      </div>
+      
+      {/* Expenses List */}
+      <div className="mb-8">
+        <ExpensesList 
+          expenses={expenses} 
+          onAddExpense={handleAddExpense} 
+        />
+      </div>
+      
+      {/* Your Balance */}
+      <div className="mb-8">
+        <DebtTracker 
+          groupId={groupId}
+          currentUserId={currentUserId}
+        />
+      </div>
 
+      {/* Add Expense Modal */}
       {showAddExpense && (
         <AddExpenseModal
           isOpen={showAddExpense}
@@ -164,7 +175,7 @@ export default function GroupPage() {
       )}
       
       {/* Debug info */}
-      <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
+      <div className="mt-8 p-4 bg-gray-100 rounded text-xs">
         <p>Debug: showAddExpense = {showAddExpense.toString()}</p>
         <p>Debug: currentUserId = {currentUserId || 'not set'}</p>
         <p>Debug: groupId = {groupId}</p>

@@ -5,40 +5,27 @@ import { getCurrentUser } from '@/app/lib/serverAuth';
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
 
-    if (!query || query.trim().length < 2) {
-      return NextResponse.json({ error: 'Search query must be at least 2 characters' }, { status: 400 });
+    if (!query) {
+      return NextResponse.json([]);
     }
 
-    // Search for users by username (case-insensitive)
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          {
-            username: {
-              contains: query.trim(),
-              mode: 'insensitive'
-            }
-          },
-          {
-            name: {
-              contains: query.trim(),
-              mode: 'insensitive'
-            }
-          }
+          { username: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: 'insensitive' } }
         ],
-        // Exclude current user
-        id: {
-          not: user.id
+        NOT: {
+          id: user.id // Exclude current user from search results
         }
       },
       select: {
         id: true,
-        username: true,
         name: true,
+        username: true,
         email: true
       },
       take: 10, // Limit results

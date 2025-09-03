@@ -23,6 +23,8 @@ model User {
   settlementsFrom Settlement[] @relation("SettlementFrom")
   settlementsTo   Settlement[] @relation("SettlementTo")
   createdGroups Group[] @relation("GroupCreator")
+  friends     Friend[] @relation("UserFriends")
+  friendOf    Friend[] @relation("FriendOf")
 }
 
 model Group {
@@ -101,6 +103,19 @@ model Settlement {
   fromUser      User     @relation("SettlementFrom", fields: [fromUserId], references: [id])
   toUser        User     @relation("SettlementTo", fields: [toUserId], references: [id])
   group         Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Friend {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  friendId  String   @db.ObjectId
+  createdAt DateTime @default(now())
+  
+  // Relationships
+  user      User     @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User     @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, friendId])
 }
 
 enum SettlementStatus {
