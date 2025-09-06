@@ -343,6 +343,8 @@ export default function AddExpenseModal({
               
               <div className="space-y-3 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
                 {members.map((member) => {
+                  console.log(currentUserId)
+                  console.log(member);
                   const isCurrentUser = member.userId === currentUserId;
                   return (
                     <div key={member.id} className="flex items-center space-x-3">

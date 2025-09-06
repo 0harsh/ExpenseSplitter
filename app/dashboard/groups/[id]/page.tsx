@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
-
 import GroupHeader from '@/components/groups/GroupHeader';
 import GroupStats from '@/components/groups/GroupStats';
 import GroupMembers from '@/components/groups/GroupMembers';
@@ -12,15 +11,16 @@ import ExpensesList from '@/components/groups/ExpensesList';
 import AddExpenseModal from '@/components/groups/AddExpenseModal';
 import DebtTracker from '@/components/groups/DebtTracker';
 import { Group, Expense } from '@/components/groups/types';
+import { useUser } from '@/app/lib/UserContext';
 
 export default function GroupPage() {
   const params = useParams();
   const groupId = params.id as string;
+  const { user, loading: userLoading } = useUser();
   const [group, setGroup] = useState<Group | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   useEffect(() => {
     if (groupId) {
@@ -37,16 +37,6 @@ export default function GroupPage() {
       if (response.ok) {
         const data = await response.json();
         setGroup(data);
-        
-        // Extract current user ID from the group data
-        // The user must be a member to view the group, so we can find them
-        if (data.members && data.members.length > 0) {
-          // For now, let's use the first member as the current user
-          // In a real app, you'd want to get this from the auth token
-          const currentMember = data.members[0];
-          setCurrentUserId(currentMember.userId);
-          console.log('Set current user ID from group data:', currentMember.userId);
-        }
       } else if (response.status === 404) {
         console.error('Group not found');
       } else {
@@ -82,12 +72,12 @@ export default function GroupPage() {
   };
 
   const handleAddExpense = () => {
-    console.log('Add expense clicked, currentUserId:', currentUserId);
+    console.log('Add expense clicked, currentUserId:', user?.id);
     console.log('Setting showAddExpense to true');
     setShowAddExpense(true);
   };
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
@@ -155,12 +145,12 @@ export default function GroupPage() {
       <div className="mb-8">
         <DebtTracker 
           groupId={groupId}
-          currentUserId={currentUserId}
+          currentUserId={user?.id || ''}
         />
       </div>
 
       {/* Add Expense Modal */}
-      {showAddExpense && (
+      {showAddExpense && user && (
         <AddExpenseModal
           isOpen={showAddExpense}
           onClose={() => {
@@ -170,15 +160,16 @@ export default function GroupPage() {
           onSuccess={handleAddExpenseSuccess}
           groupId={groupId}
           members={group.members}
-          currentUserId={currentUserId}
+          currentUserId={user.id}
         />
       )}
       
       {/* Debug info */}
       <div className="mt-8 p-4 bg-gray-100 rounded text-xs">
         <p>Debug: showAddExpense = {showAddExpense.toString()}</p>
-        <p>Debug: currentUserId = {currentUserId || 'not set'}</p>
+        <p>Debug: currentUserId = {user?.id || 'not set'}</p>
         <p>Debug: groupId = {groupId}</p>
+        <p>Debug: userLoading = {userLoading.toString()}</p>
       </div>
     </div>
   );
