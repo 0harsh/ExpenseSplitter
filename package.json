@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "prisma generate",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "prisma generate",
     "clear-db": "node prisma/clear-database.js",
     "clear-db-safe": "node prisma/clear-database-with-confirmation.js"
   },
