@@ -138,7 +138,7 @@ export default function SettlementsList() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Settlements</h2>
           <p className="text-gray-600">
-            Total: ${totalAmount.toFixed(2)} • Pending: {totalPending}
+            Total: ₹{totalAmount.toFixed(2)} • Pending: {totalPending}
           </p>
         </div>
         
@@ -182,7 +182,7 @@ export default function SettlementsList() {
                  </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
-                    ${settlement.amount.toFixed(2)}
+                    ₹{settlement.amount.toFixed(2)}
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(settlement.status)}`}>
                     {settlement.status}

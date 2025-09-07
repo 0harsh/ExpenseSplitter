@@ -101,7 +101,7 @@ export default function ExpensesList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Expenses</h2>
-          <p className="text-gray-600">Total: ${totalAmount.toFixed(2)}</p>
+          <p className="text-gray-600">Total: ₹{totalAmount.toFixed(2)}</p>
         </div>
         
         <div className="flex items-center space-x-3">
@@ -160,7 +160,7 @@ export default function ExpensesList() {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
-                    ${expense.amount.toFixed(2)}
+                    ₹{expense.amount.toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-500">
                     {new Date(expense.date).toLocaleDateString()}
@@ -209,7 +209,7 @@ export default function ExpensesList() {
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-gray-900">
-                          ${split.amount.toFixed(2)}
+                          ₹{split.amount.toFixed(2)}
                         </div>
                         {split.percentage && (
                           <div className="text-xs text-gray-500">

@@ -61,7 +61,7 @@ export default function CreateExpenseForm({ groups, onClose }: CreateExpenseForm
       const totalSplitAmount = customSplits.reduce((sum, split) => sum + parseFloat(split.amount || '0'), 0);
       const totalAmount = parseFloat(amount);
       if (Math.abs(totalSplitAmount - totalAmount) > 0.01) {
-        alert(`Total split amount ($${totalSplitAmount.toFixed(2)}) must equal total expense amount ($${totalAmount.toFixed(2)})`);
+        alert(`Total split amount (₹${totalSplitAmount.toFixed(2)}) must equal total expense amount (₹${totalAmount.toFixed(2)})`);
         return;
       }
     }
@@ -344,7 +344,7 @@ export default function CreateExpenseForm({ groups, onClose }: CreateExpenseForm
                   <div className="flex justify-between text-sm">
                     <span>Total Split Amount:</span>
                     <span className="font-medium">
-                      ${customSplits.reduce((sum, split) => sum + parseFloat(split.amount || '0'), 0).toFixed(2)}
+                      ₹{customSplits.reduce((sum, split) => sum + parseFloat(split.amount || '0'), 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -360,7 +360,7 @@ export default function CreateExpenseForm({ groups, onClose }: CreateExpenseForm
                         ? 'text-green-600' 
                         : 'text-red-600'
                     }`}>
-                      ${(parseFloat(amount) - customSplits.reduce((sum, split) => sum + parseFloat(split.amount || '0'), 0)).toFixed(2)}
+                      ₹{(parseFloat(amount) - customSplits.reduce((sum, split) => sum + parseFloat(split.amount || '0'), 0)).toFixed(2)}
                     </span>
                   </div>
                 </div>

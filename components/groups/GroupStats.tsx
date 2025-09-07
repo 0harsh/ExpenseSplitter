@@ -18,7 +18,7 @@ export default function GroupStats({ group, totalExpenses }: GroupStatsProps) {
       </div>
       <div className="bg-white shadow rounded-lg p-4 sm:p-6">
         <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2">Total Amount</h3>
-        <div className="text-2xl sm:text-3xl font-bold text-purple-600">${totalExpenses.toFixed(2)}</div>
+        <div className="text-2xl sm:text-3xl font-bold text-purple-600">₹{totalExpenses.toFixed(2)}</div>
       </div>
       <div className="bg-white shadow rounded-lg p-4 sm:p-6">
         <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2">Created</h3>

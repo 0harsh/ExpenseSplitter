@@ -110,7 +110,7 @@ export default function DebtTracker({ groupId, currentUserId }: DebtTrackerProps
                   ? 'text-red-600' 
                   : 'text-gray-600'
             }`}>
-              {netBalance > 0 ? '+' : ''}${netBalance.toFixed(2)}
+              {netBalance > 0 ? '+' : ''}₹{netBalance.toFixed(2)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
               {netBalance > 0 
@@ -145,7 +145,7 @@ export default function DebtTracker({ groupId, currentUserId }: DebtTrackerProps
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-red-600">
-                      ${debt.amount.toFixed(2)}
+                      ₹{debt.amount.toFixed(2)}
                     </div>
                   </div>
                 </div>
@@ -154,7 +154,7 @@ export default function DebtTracker({ groupId, currentUserId }: DebtTrackerProps
             <div className="mt-3 pt-3 border-t border-red-200">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Total you owe:</span>
-                <span className="font-bold text-red-600">${totalDebt.toFixed(2)}</span>
+                <span className="font-bold text-red-600">₹{totalDebt.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function DebtTracker({ groupId, currentUserId }: DebtTrackerProps
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-green-600">
-                      ${credit.amount.toFixed(2)}
+                      ₹{credit.amount.toFixed(2)}
                     </div>
                   </div>
                 </div>
@@ -191,7 +191,7 @@ export default function DebtTracker({ groupId, currentUserId }: DebtTrackerProps
             <div className="mt-3 pt-3 border-t border-green-200">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Total you are owed:</span>
-                <span className="font-bold text-green-600">${totalCredit.toFixed(2)}</span>
+                <span className="font-bold text-green-600">₹{totalCredit.toFixed(2)}</span>
               </div>
             </div>
           </div>

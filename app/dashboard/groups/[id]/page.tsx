@@ -9,7 +9,8 @@ import GroupStats from '@/components/groups/GroupStats';
 import GroupMembers from '@/components/groups/GroupMembers';
 import ExpensesList from '@/components/groups/ExpensesList';
 import AddExpenseModal from '@/components/groups/AddExpenseModal';
-import DebtTracker from '@/components/groups/DebtTracker';
+import CustomPaymentModal from '@/components/groups/CustomPaymentModal';
+import NetBalanceTracker from '@/components/groups/NetBalanceTracker';
 import { Group, Expense } from '@/components/groups/types';
 import { useUser } from '@/app/lib/UserContext';
 
@@ -21,6 +22,7 @@ export default function GroupPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showCustomPayment, setShowCustomPayment] = useState(false);
 
   useEffect(() => {
     if (groupId) {
@@ -68,13 +70,24 @@ export default function GroupPage() {
   const handleAddExpenseSuccess = () => {
     fetchGroupExpenses();
     fetchGroupDetails();
-    // The DebtTracker component will automatically refresh when the group data changes
+    // The NetBalanceTracker component will automatically refresh when the group data changes
+  };
+
+  const handleCustomPaymentSuccess = () => {
+    fetchGroupExpenses();
+    fetchGroupDetails();
+    // The NetBalanceTracker and GroupMembers components will automatically refresh when the group data changes
   };
 
   const handleAddExpense = () => {
     console.log('Add expense clicked, currentUserId:', user?.id);
     console.log('Setting showAddExpense to true');
     setShowAddExpense(true);
+  };
+
+  const handleMakePayment = () => {
+    console.log('Make payment clicked, currentUserId:', user?.id);
+    setShowCustomPayment(true);
   };
 
   if (loading || userLoading) {
@@ -113,7 +126,8 @@ export default function GroupPage() {
       <div className="mb-8">
         <GroupHeader 
           group={group} 
-          onAddExpense={handleAddExpense} 
+          onAddExpense={handleAddExpense}
+          onMakePayment={handleMakePayment}
         />
       </div>
       
@@ -128,8 +142,10 @@ export default function GroupPage() {
       {/* Group Members */}
       <div className="mb-8">
         <GroupMembers 
+          key={`group-members-${groupId}`}
           members={group.members} 
-          creatorId={group.creator.id} 
+          creatorId={group.creator.id}
+          groupId={groupId}
         />
       </div>
       
@@ -141,9 +157,10 @@ export default function GroupPage() {
         />
       </div>
       
-      {/* Your Balance */}
+      {/* Net Balances */}
       <div className="mb-8">
-        <DebtTracker 
+        <NetBalanceTracker 
+          key={`net-balance-${groupId}`}
           groupId={groupId}
           currentUserId={user?.id || ''}
         />
@@ -163,10 +180,23 @@ export default function GroupPage() {
           currentUserId={user.id}
         />
       )}
+
+      {/* Custom Payment Modal */}
+      {showCustomPayment && user && (
+        <CustomPaymentModal
+          isOpen={showCustomPayment}
+          onClose={() => setShowCustomPayment(false)}
+          onSuccess={handleCustomPaymentSuccess}
+          groupId={groupId}
+          members={group.members.map(member => member.user)}
+          currentUserId={user.id}
+        />
+      )}
       
       {/* Debug info */}
       <div className="mt-8 p-4 bg-gray-100 rounded text-xs">
         <p>Debug: showAddExpense = {showAddExpense.toString()}</p>
+        <p>Debug: showCustomPayment = {showCustomPayment.toString()}</p>
         <p>Debug: currentUserId = {user?.id || 'not set'}</p>
         <p>Debug: groupId = {groupId}</p>
         <p>Debug: userLoading = {userLoading.toString()}</p>

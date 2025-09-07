@@ -40,7 +40,7 @@ export default function ExpensesList({ expenses, onAddExpense }: ExpensesListPro
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-semibold text-green-600">
-                    ${expense.amount.toFixed(2)}
+                    ₹{expense.amount.toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-500">
                     {new Date(expense.createdAt).toLocaleDateString()}

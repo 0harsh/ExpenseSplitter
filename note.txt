@@ -1,2 +1,5 @@
 --Remove Bugs...
 -- Make Quick Debt Resolver feature which uses greedy algo to resolve debts in minimum transactions.
+--GreedyLogic+settlements..
+
+--Add Group members to existingGroup.

@@ -4,9 +4,10 @@ import { Group } from './types';
 interface GroupHeaderProps {
   group: Group;
   onAddExpense: () => void;
+  onMakePayment: () => void;
 }
 
-export default function GroupHeader({ group, onAddExpense }: GroupHeaderProps) {
+export default function GroupHeader({ group, onAddExpense, onMakePayment }: GroupHeaderProps) {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between">
@@ -24,12 +25,20 @@ export default function GroupHeader({ group, onAddExpense }: GroupHeaderProps) {
             <p className="text-gray-600 mt-2">{group.description}</p>
           )}
         </div>
-        <button
-          onClick={onAddExpense}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-        >
-          Add Expense
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={onMakePayment}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+          >
+            Make Payment
+          </button>
+          <button
+            onClick={onAddExpense}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+          >
+            Add Expense
+          </button>
+        </div>
       </div>
     </div>
   );

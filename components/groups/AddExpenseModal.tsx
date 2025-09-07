@@ -197,7 +197,7 @@ export default function AddExpenseModal({
       
       let errorMessage = 'Please fix the following issues:\n';
       if (amountError) {
-        errorMessage += `• Total split amount ($${getTotalSplitAmount().toFixed(2)}) must equal total expense amount ($${parseFloat(totalAmount).toFixed(2)})\n`;
+        errorMessage += `• Total split amount (₹${getTotalSplitAmount().toFixed(2)}) must equal total expense amount (₹${parseFloat(totalAmount).toFixed(2)})\n`;
       }
       if (percentageError) {
         errorMessage += `• Total split percentage (${getTotalSplitPercentage().toFixed(1)}%) must equal 100%`;
@@ -384,7 +384,7 @@ export default function AddExpenseModal({
               
               <div className="bg-green-50 p-3 rounded-md mb-4">
                 <p className="text-sm text-green-800">
-                  💡 <strong>Tip:</strong> You can enter both amounts ($) and percentages (%) for each person. 
+                  💡 <strong>Tip:</strong> You can enter both amounts (₹) and percentages (%) for each person. 
                   The last person's values will automatically adjust to ensure the total equals the expense amount.
                   <br />
                   <strong>Note:</strong> Only the members you selected will be included in the split.
@@ -412,7 +412,7 @@ export default function AddExpenseModal({
                         className={`flex-1 px-2 py-1 border border-gray-300 rounded text-sm ${
                           isAutoAdjusted ? 'bg-green-50 border-green-200' : ''
                         }`}
-                        placeholder="Amount ($)"
+                        placeholder="Amount (₹)"
                         disabled={isAutoAdjusted}
                       />
                       <input
@@ -435,7 +435,7 @@ export default function AddExpenseModal({
                 <div className="flex justify-between text-sm">
                   <span>Total Split Amount:</span>
                   <span className="font-medium">
-                    ${getTotalSplitAmount().toFixed(2)}
+                    ₹{getTotalSplitAmount().toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -449,7 +449,7 @@ export default function AddExpenseModal({
                   <span className={`font-medium ${
                     remainingAmount === 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    ${remainingAmount.toFixed(2)}
+                    ₹{remainingAmount.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
