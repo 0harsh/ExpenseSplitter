@@ -385,7 +385,7 @@ export default function AddExpenseModal({
               <div className="bg-green-50 p-3 rounded-md mb-4">
                 <p className="text-sm text-green-800">
                   💡 <strong>Tip:</strong> You can enter both amounts (₹) and percentages (%) for each person. 
-                  The last person's values will automatically adjust to ensure the total equals the expense amount.
+                  The last person&apos;s values will automatically adjust to ensure the total equals the expense amount.
                   <br />
                   <strong>Note:</strong> Only the members you selected will be included in the split.
                 </p>

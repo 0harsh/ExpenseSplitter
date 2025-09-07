@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 
 const DEFAULT_JWT_EXPIRES = "7d";
 
@@ -15,24 +15,28 @@ export async function verifyPassword(
   return bcrypt.compare(plainPassword, hashedPassword);
 }
 
-type JwtPayload = {
+type AuthTokenPayload = {
   sub: string; // user id
   email: string;
 };
 
 export function signAuthToken(
-  payload: JwtPayload,
+  payload: AuthTokenPayload,
   options?: { expiresIn?: string | number }
 ): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("Missing JWT_SECRET");
-  return jwt.sign(payload, secret, { expiresIn: options?.expiresIn ?? DEFAULT_JWT_EXPIRES });
+  const secretEnv = process.env.JWT_SECRET;
+  if (!secretEnv) throw new Error("Missing JWT_SECRET");
+  const secret: Secret = secretEnv;
+  const signOptions: SignOptions = {
+    expiresIn: (options?.expiresIn ?? DEFAULT_JWT_EXPIRES) as SignOptions["expiresIn"],
+  };
+  return jwt.sign(payload, secret, signOptions);
 }
 
-export function verifyAuthToken(token: string): JwtPayload {
-  const secret = process.env.JWT_SECRET;
+export function verifyAuthToken(token: string): AuthTokenPayload {
+  const secret = process.env.JWT_SECRET as Secret;
   if (!secret) throw new Error("Missing JWT_SECRET");
-  return jwt.verify(token, secret) as JwtPayload;
+  return jwt.verify(token, secret) as AuthTokenPayload;
 }
 
 export function authCookieOptions() {

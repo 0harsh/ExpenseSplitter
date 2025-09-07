@@ -33,12 +33,38 @@ export default function CustomPaymentModal({
 
   // Filter out current user from members list
   const otherMembers = members.filter(member => member.id !== currentUserId);
+  
+  // If no other members, show error
+  if (otherMembers.length === 0) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">No Other Members</h3>
+            <p className="text-gray-600 mb-4">There are no other members in this group to make payments to.</p>
+            <button
+              onClick={onClose}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedUserId || !amount) {
       setError('Please select a member and enter an amount');
+      return;
+    }
+
+    // Double-check: prevent self-payment
+    if (selectedUserId === currentUserId) {
+      setError('Cannot make payment to yourself');
       return;
     }
 

@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { getCurrentUser } from '@/app/lib/serverAuth';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
 
     const { title, description, amount, date, groupId, splits } = await request.json();
+    type SplitInput = { userId: string; amount: number | string; percentage?: number | string | null };
+    const splitsTyped: SplitInput[] = Array.isArray(splits) ? (splits as SplitInput[]) : [];
 
     if (!title || !amount || !groupId) {
       return NextResponse.json({ error: 'Title, amount, and group are required' }, { status: 400 });
@@ -22,10 +25,10 @@ export async function POST(request: NextRequest) {
         paidById: user.id,
         groupId,
         splits: {
-          create: splits.map((split: any) => ({
+          create: splitsTyped.map((split) => ({
             userId: split.userId,
-            amount: parseFloat(split.amount),
-            percentage: split.percentage ? parseFloat(split.percentage) : null
+            amount: typeof split.amount === 'number' ? split.amount : parseFloat(split.amount || '0'),
+            percentage: split.percentage ? (typeof split.percentage === 'number' ? split.percentage : parseFloat(split.percentage || '0')) : null
           }))
         }
       },
@@ -63,7 +66,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const groupId = searchParams.get('groupId');
 
-    const whereClause: any = {
+    const whereClause: Prisma.ExpenseWhereInput = {
       group: {
         members: {
           some: {

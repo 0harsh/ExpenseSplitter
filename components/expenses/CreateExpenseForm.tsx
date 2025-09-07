@@ -296,7 +296,7 @@ export default function CreateExpenseForm({ groups, onClose }: CreateExpenseForm
                 <div className="bg-blue-50 p-3 rounded-md mb-4">
                   <p className="text-sm text-blue-800">
                     💡 <strong>Tip:</strong> You can manually enter amounts or percentages for each person. 
-                    The last person's amount/percentage will automatically adjust to ensure the total equals the expense amount.
+                    The last person&apos;s amount/percentage will automatically adjust to ensure the total equals the expense amount.
                   </p>
                 </div>
               )}

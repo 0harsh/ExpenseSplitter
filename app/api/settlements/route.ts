@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { getCurrentUser } from '@/app/lib/serverAuth';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const groupId = searchParams.get('groupId');
 
-    const whereClause: any = {
+    const whereClause: Prisma.SettlementWhereInput = {
       OR: [
         { fromUserId: user.id },
         { toUserId: user.id }

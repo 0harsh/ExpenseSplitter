@@ -117,6 +117,7 @@ export async function GET(
       const toUser = settlement.toUserId;
       const amount = settlement.amount;
       
+      // When fromUser pays toUser, reduce the debt fromUser owes toUser
       if (debts[fromUser] && debts[fromUser][toUser] !== undefined) {
         debts[fromUser][toUser] = Math.max(0, debts[fromUser][toUser] - amount);
       }
@@ -124,7 +125,7 @@ export async function GET(
 
     // Calculate net balances for the current user with each other member
     const currentUserId = payload.sub;
-    const netBalances = [];
+    const netBalancesList = [];
 
     for (const member of groupMembers) {
       if (member.userId === currentUserId) continue;
@@ -135,7 +136,7 @@ export async function GET(
 
       // Only include if there's a net balance (positive or negative)
       if (Math.abs(netAmount) > 0.01) { // Small threshold to avoid floating point issues
-        netBalances.push({
+        netBalancesList.push({
           userId: member.userId,
           userName: member.user.name || member.user.username || 'Unknown',
           netAmount: netAmount,
@@ -145,10 +146,10 @@ export async function GET(
     }
 
     // Sort by absolute amount (highest first)
-    netBalances.sort((a, b) => Math.abs(b.netAmount) - Math.abs(a.netAmount));
+    netBalancesList.sort((a, b) => Math.abs(b.netAmount) - Math.abs(a.netAmount));
 
     return NextResponse.json({
-      netBalances,
+      netBalances: netBalancesList,
       currentUserId,
     });
   } catch (error) {

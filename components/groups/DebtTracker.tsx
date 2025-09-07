@@ -202,7 +202,7 @@ export default function DebtTracker({ groupId, currentUserId }: DebtTrackerProps
           <div className="text-center py-8">
             <div className="text-gray-400 text-4xl mb-4">💰</div>
             <h4 className="text-lg font-medium text-gray-900 mb-2">All Settled Up!</h4>
-            <p className="text-gray-500">You don't owe anyone and no one owes you anything in this group.</p>
+            <p className="text-gray-500">You don&apos;t owe anyone and no one owes you anything in this group.</p>
           </div>
         )}
 
