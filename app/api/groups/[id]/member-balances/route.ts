@@ -101,7 +101,7 @@ export async function GET(
       const amount = settlement.amount;
       
       if (debts[fromUser] && debts[fromUser][toUser] !== undefined) {
-        debts[fromUser][toUser] = Math.max(0, debts[fromUser][toUser] - amount);
+        debts[fromUser][toUser] = debts[fromUser][toUser] - amount;
       }
     });
 
