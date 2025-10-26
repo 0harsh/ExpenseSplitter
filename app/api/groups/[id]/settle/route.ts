@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/app/lib/prisma';
 import { verifyAuthToken, authCookieOptions } from '@/app/lib/auth';
+import { buildDebtMatrix } from '@/app/lib/debtMatrix';
 
 export async function POST(
   request: NextRequest,
@@ -53,28 +54,25 @@ export async function POST(
     const expenses = await prisma.expense.findMany({
       where: { groupId: groupId },
       include: {
-        splits: true,
+        paidBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+          },
+        },
+        splits: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
-    });
-
-    // Calculate current debt between users
-    let currentDebt = 0;
-    expenses.forEach(expense => {
-      const paidBy = expense.paidById;
-      
-      expense.splits.forEach(split => {
-        const owesTo = split.userId;
-        const splitAmount = split.amount;
-        
-        // If current user paid and other user owes
-        if (paidBy === payload.sub && owesTo === toUserId) {
-          currentDebt += splitAmount;
-        }
-        // If other user paid and current user owes
-        else if (paidBy === toUserId && owesTo === payload.sub) {
-          currentDebt -= splitAmount;
-        }
-      });
     });
 
     // Get completed settlements to adjust debt
@@ -82,24 +80,31 @@ export async function POST(
       where: {
         groupId: groupId,
         status: 'COMPLETED',
-        OR: [
-          { fromUserId: payload.sub, toUserId: toUserId },
-          { fromUserId: toUserId, toUserId: payload.sub },
-        ],
       },
     });
 
-    // Apply settlements
-    settlements.forEach(settlement => {
-      if (settlement.fromUserId === payload.sub) {
-        currentDebt -= settlement.amount;
-      } else {
-        currentDebt += settlement.amount;
-      }
+    // Get all group members to build the matrix
+    const groupMembers = await prisma.groupMember.findMany({
+      where: { groupId },
     });
+    const userIds = groupMembers.map(m => m.userId);
 
-    // Validate settlement amount
-    if (amount > Math.abs(currentDebt)) {
+    // Build skew-symmetric debt matrix
+    const debts = buildDebtMatrix(userIds, expenses, settlements);
+
+    // Get current debt: Debt[currentUser][toUser] means currentUser owes toUser
+    // If positive, currentUser owes toUser; if negative, toUser owes currentUser
+    const currentDebt = debts[payload.sub]?.[toUserId] || 0;
+
+    // Validate settlement amount - currentUser can only pay if they owe (positive debt)
+    if (currentDebt < 0) {
+      return NextResponse.json(
+        { error: 'This user owes you money, you cannot settle with them' },
+        { status: 400 }
+      );
+    }
+
+    if (amount > currentDebt) {
       return NextResponse.json(
         { error: 'Settlement amount exceeds outstanding debt' },
         { status: 400 }

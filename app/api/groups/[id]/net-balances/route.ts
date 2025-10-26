@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/app/lib/prisma';
 import { verifyAuthToken, authCookieOptions } from '@/app/lib/auth';
+import { buildDebtMatrix } from '@/app/lib/debtMatrix';
 
 export async function GET(
   request: NextRequest,
@@ -75,35 +76,7 @@ export async function GET(
       },
     });
 
-    // Calculate debts between all members
-    const debts: { [key: string]: { [key: string]: number } } = {};
-
-    // Initialize debt matrix
-    groupMembers.forEach(member => {
-      debts[member.userId] = {};
-      groupMembers.forEach(otherMember => {
-        if (member.userId !== otherMember.userId) {
-          debts[member.userId][otherMember.userId] = 0;
-        }
-      });
-    });
-
-    // Process each expense to calculate debts
-    expenses.forEach(expense => {
-      const paidBy = expense.paidById;
-      
-      expense.splits.forEach(split => {
-        const owesTo = split.userId;
-        const amount = split.amount;
-        
-        // If someone paid and someone else owes, create a debt
-        if (paidBy !== owesTo) {
-          debts[owesTo][paidBy] += amount;
-        }
-      });
-    });
-
-    // Get settlements to adjust debts
+    // Get completed settlements
     const settlements = await prisma.settlement.findMany({
       where: {
         groupId: groupId,
@@ -111,17 +84,11 @@ export async function GET(
       },
     });
 
-    // Apply settlements to reduce debts
-    settlements.forEach(settlement => {
-      const fromUser = settlement.fromUserId;
-      const toUser = settlement.toUserId;
-      const amount = settlement.amount;
-      
-      // When fromUser pays toUser, reduce the debt fromUser owes toUser
-      if (debts[fromUser] && debts[fromUser][toUser] !== undefined) {
-        debts[fromUser][toUser] = Math.max(0, debts[fromUser][toUser] - amount);
-      }
-    });
+    // Build skew-symmetric debt matrix
+    const userIds = groupMembers.map(m => m.userId);
+    const debts = buildDebtMatrix(userIds, expenses, settlements);
+
+    console.log(debts);
 
     // Calculate net balances for the current user with each other member
     const currentUserId = payload.sub;
@@ -130,9 +97,12 @@ export async function GET(
     for (const member of groupMembers) {
       if (member.userId === currentUserId) continue;
 
-      const currentUserOwes = debts[currentUserId]?.[member.userId] || 0;
-      const memberOwes = debts[member.userId]?.[currentUserId] || 0;
-      const netAmount = memberOwes - currentUserOwes;
+      // In skew-symmetric matrix: debts[u1][u2] = what u1 owes u2
+      // Since the matrix is skew-symmetric, debts[u1][u2] = -debts[u2][u1]
+      // Therefore, we only need to look at one direction to get the net balance
+      // debts[member.userId][currentUserId] = what member owes to currentUser
+      // For net balance, positive = they owe me, negative = I owe them
+      const netAmount = debts[member.userId]?.[currentUserId] || 0;
 
       // Only include if there's a net balance (positive or negative)
       if (Math.abs(netAmount) > 0.01) { // Small threshold to avoid floating point issues

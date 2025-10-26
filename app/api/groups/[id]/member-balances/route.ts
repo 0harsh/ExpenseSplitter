@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/app/lib/prisma';
 import { verifyAuthToken, authCookieOptions } from '@/app/lib/auth';
+import { buildDebtMatrix } from '@/app/lib/debtMatrix';
 
 export async function GET(
   request: NextRequest,
@@ -54,39 +55,28 @@ export async function GET(
     const expenses = await prisma.expense.findMany({
       where: { groupId: groupId },
       include: {
-        splits: true,
+        paidBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+          },
+        },
+        splits: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    // Calculate debts between all members
-    const debts: { [key: string]: { [key: string]: number } } = {};
-
-    // Initialize debt matrix
-    groupMembers.forEach(member => {
-      debts[member.userId] = {};
-      groupMembers.forEach(otherMember => {
-        if (member.userId !== otherMember.userId) {
-          debts[member.userId][otherMember.userId] = 0;
-        }
-      });
-    });
-
-    // Process each expense to calculate debts
-    expenses.forEach(expense => {
-      const paidBy = expense.paidById;
-      
-      expense.splits.forEach(split => {
-        const owesTo = split.userId;
-        const amount = split.amount;
-        
-        // If someone paid and someone else owes, create a debt
-        if (paidBy !== owesTo) {
-          debts[owesTo][paidBy] += amount;
-        }
-      });
-    });
-
-    // Get settlements to adjust debts
+    // Get completed settlements
     const settlements = await prisma.settlement.findMany({
       where: {
         groupId: groupId,
@@ -94,33 +84,26 @@ export async function GET(
       },
     });
 
-    // Apply settlements to reduce debts
-    settlements.forEach(settlement => {
-      const fromUser = settlement.fromUserId;
-      const toUser = settlement.toUserId;
-      const amount = settlement.amount;
-      
-      if (debts[fromUser] && debts[fromUser][toUser] !== undefined) {
-        debts[fromUser][toUser] = debts[fromUser][toUser] - amount;
-      }
-    });
+    // Build skew-symmetric debt matrix
+    const userIds = groupMembers.map(m => m.userId);
+    const debts = buildDebtMatrix(userIds, expenses, settlements);
 
-    // Calculate net balance for each member with the rest of the group
+    
     const memberBalances = groupMembers.map(member => {
       const memberId = member.userId;
+      const rowDebts = debts[memberId] || {};
       
-      // Calculate what this member owes to others
-      const memberOwes = Object.values(debts[memberId] || {}).reduce((sum, amount) => sum + amount, 0);
+     
+      const rowSum = Object.values(rowDebts).reduce((sum, amount) => sum + amount, 0);
+      const netBalance = -rowSum; // Negate because rowSum = owes - owed
       
-      // Calculate what others owe to this member
-      const memberOwed = Object.keys(debts).reduce((sum, debtorId) => {
-        if (debtorId !== memberId && debts[debtorId] && debts[debtorId][memberId]) {
-          return sum + debts[debtorId][memberId];
-        }
-        return sum;
-      }, 0);
       
-      const netBalance = memberOwed - memberOwes;
+      const memberOwes = Object.values(rowDebts).reduce((sum, amount) => 
+        sum + (amount > 0 ? amount : 0), 0);
+      
+      
+      const memberOwed = Object.values(rowDebts).reduce((sum, amount) => 
+        sum + (amount < 0 ? -amount : 0), 0);
       
       return {
         userId: memberId,
