@@ -152,7 +152,7 @@ export async function POST(
 
       // Create expense splits
       const expenseSplits = await Promise.all(
-        splits.map(async (split: { userId: string; amount: number; percentage?: number }) => {
+        splits.map(async (split: { userId: string; amount: number; percentage?:number }) => {
           const expenseSplit = await tx.expenseSplit.create({
             data: {
               expenseId: expense.id,
