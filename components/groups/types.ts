@@ -1,42 +1,72 @@
+
 export interface User {
   id: string;
-  name: string;
+  email: string;
   username: string;
+  name?: string;
+  createdAt: string;
 }
 
-export interface GroupMember {
+export interface Settlement {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  groupId: string;
+  amount: number;
+  status: string;
+  // Dates from APIs are usually strings; keep them serializable
+  createdAt: string;
+  updatedAt: string;
+  settledAt?: string | null;
+}
+
+
+export interface ExpenseSplit {
   id: string;
   userId: string;
+  amount: number;
+  percentage?: number | null;
+  isPaid: boolean;
   user: User;
 }
 
 export interface Expense {
   id: string;
   title: string;
-  description?: string;
   amount: number;
+  paidById: string;
   paidBy: User;
-  createdAt: string;
+  splits: ExpenseSplit[];
 }
+
+
 
 export interface Group {
   id: string;
   name: string;
   description?: string;
   creator: User;
-  members: GroupMember[];
-  _count: {
-    expenses: number;
-    members: number;
-  };
+  members: User[];
+  expenses: Expense[];
+  settlements: Settlement[];
+  debtMatrix: { [key: string]: { [key: string]: number } };
   createdAt: string;
 }
 
-export interface ExpenseSplit {
-  userId: string;
-  amount: number;
-  percentage?: number;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export type DistributionMethod = 'exact' | 'percentage';
 

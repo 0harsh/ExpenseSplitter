@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { validateSettlements, getUserDisplayName, getGroupDisplayName } from '@/app/lib/settlementUtils';
+import { validateSettlements, getUserDisplayName, getGroupDisplayName } from '@/lib/settlementUtils';
 
 interface User {
   id: string;

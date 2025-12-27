@@ -1,5 +1,5 @@
-import { getCurrentUser } from '@/app/lib/serverAuth';
-import { prisma } from '@/app/lib/prisma';
+import { getCurrentUser } from '@/lib/serverAuth';
+import { prisma } from '@/lib/prisma';
 
 async function getUserActivity() {
   const user = await getCurrentUser();

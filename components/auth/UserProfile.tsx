@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { clearAuthCookie } from '@/app/lib/auth';
+import { clearAuthCookie } from '@/lib/auth';
 
 interface User {
   id: string;

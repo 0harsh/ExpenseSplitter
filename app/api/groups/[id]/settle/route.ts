@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { prisma } from '@/app/lib/prisma';
-import { verifyAuthToken, authCookieOptions } from '@/app/lib/auth';
-import { buildDebtMatrix } from '@/app/lib/debtMatrix';
+import { prisma } from '@/lib/prisma';
+import { verifyAuthToken, authCookieOptions } from '@/lib/auth';
+import { buildDebtMatrix } from '@/lib/debtMatrix';
 
 export async function POST(
   request: NextRequest,

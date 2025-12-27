@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { verifyAuthToken, authCookieOptions } from "@/app/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { verifyAuthToken, authCookieOptions } from "@/lib/auth";
 
 export async function GET() {
   try {

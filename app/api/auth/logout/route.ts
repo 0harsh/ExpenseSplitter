@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authCookieOptions } from "@/app/lib/auth";
+import { authCookieOptions } from "@/lib/auth";
 
 export async function POST() {
   try {

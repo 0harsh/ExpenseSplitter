@@ -1,13 +1,36 @@
 import Link from 'next/link';
-import { Group } from './types';
+import { useGroup } from '@/lib/GroupContext';
 
 interface GroupHeaderProps {
-  group: Group;
   onAddExpense: () => void;
   onMakePayment: () => void;
 }
 
-export default function GroupHeader({ group, onAddExpense, onMakePayment }: GroupHeaderProps) {
+export default function GroupHeader({ onAddExpense, onMakePayment }: GroupHeaderProps) {
+  const { group, loading } = useGroup();
+
+  // Show a lightweight placeholder while the group is loading
+  if (loading) {
+    return (
+      <div className="mb-8">
+        <div className="h-8 w-48 bg-gray-200 rounded mb-2" />
+        <div className="h-6 w-64 bg-gray-200 rounded" />
+      </div>
+    );
+  }
+
+  // If group is missing (not found / error), render a fallback
+  if (!group) {
+    return (
+      <div className="mb-8">
+        <div className="text-red-600">Group not found</div>
+      </div>
+    );
+  }
+
+  const title = group.name ?? 'Untitled Group';
+  const description = group.description ?? '';
+
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between">
@@ -20,10 +43,8 @@ export default function GroupHeader({ group, onAddExpense, onMakePayment }: Grou
               ← Back to Groups
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{group.name}</h1>
-          {group.description && (
-            <p className="text-gray-600 mt-2">{group.description}</p>
-          )}
+          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+          {description && <p className="text-gray-600 mt-2">{description}</p>}
         </div>
         <div className="flex space-x-3">
           <button

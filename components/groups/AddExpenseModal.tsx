@@ -1,25 +1,19 @@
-'use client';
+ 'use client';
 
 import { useState, useEffect } from 'react';
-import { GroupMember, ExpenseSplit, DistributionMethod } from './types';
+import { useGroup } from '@/lib/GroupContext';
+import { useUser } from '@/lib/UserContext';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  groupId: string;
-  members: GroupMember[];
-  currentUserId: string;
 }
 
-export default function AddExpenseModal({
-  isOpen,
-  onClose,
-  onSuccess,
-  groupId,
-  members,
-  currentUserId,
-}: AddExpenseModalProps) {
+export default function AddExpenseModal({ isOpen, onClose, onSuccess }: AddExpenseModalProps) {
+  const { group } = useGroup();
+  const { user } = useUser();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
@@ -155,8 +149,10 @@ export default function AddExpenseModal({
 
 
 
+  const membersList = (group?.members ?? []).map((m: any) => (m && m.user ? m.user : m));
+
   const getCurrentUser = () => {
-    return members.find(member => member.userId === currentUserId);
+    return membersList.find((member: any) => member.id === (user?.id ?? ''));
   };
 
   const getTotalSplitAmount = () => {
@@ -210,7 +206,13 @@ export default function AddExpenseModal({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/groups/${groupId}/expenses`, {
+      const gid = group?.id;
+      if (!gid) {
+        alert('Group id unavailable');
+        return;
+      }
+
+      const response = await fetch(`/api/groups/${gid}/expenses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +222,7 @@ export default function AddExpenseModal({
           title,
           description,
           amount: parseFloat(totalAmount),
-          paidBy: currentUserId,
+          paidBy: user?.id,
           splits: expenseSplits.map(split => ({
             userId: split.userId,
             amount: parseFloat(split.amount || '0'),
@@ -330,7 +332,7 @@ export default function AddExpenseModal({
 
           <div className="bg-blue-50 p-3 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Paid by:</strong> {currentUser?.user.name || currentUser?.user.username} (You)
+              <strong>Paid by:</strong> {user?.name || user?.username} (You)
             </p>
           </div>
 
@@ -342,26 +344,24 @@ export default function AddExpenseModal({
               </label>
               
               <div className="space-y-3 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
-                {members.map((member) => {
-                  console.log(currentUserId)
-                  console.log(member);
-                  const isCurrentUser = member.userId === currentUserId;
+                {membersList.map((member) => {
+                  const isCurrentUser = member.id === user?.id;
                   return (
                     <div key={member.id} className="flex items-center space-x-3">
                       <input
                         type="checkbox"
                         id={`member-${member.id}`}
-                        checked={selectedMembers.includes(member.userId)}
-                        onChange={() => handleMemberToggle(member.userId)}
+                        checked={selectedMembers.includes(member.id)}
+                        onChange={() => handleMemberToggle(member.id)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <label htmlFor={`member-${member.id}`} className="flex-1 text-sm cursor-pointer">
                         {isCurrentUser ? (
                           <span className="text-blue-600 font-medium">
-                            {member.user.name || member.user.username} (You - the person who paid)
+                            {member.name || member.username} (You - the person who paid)
                           </span>
                         ) : (
-                          member.user.name || member.user.username
+                          member.name || member.username
                         )}
                       </label>
                     </div>
@@ -393,15 +393,15 @@ export default function AddExpenseModal({
 
               <div className="space-y-3 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
                 {expenseSplits.map((split, index) => {
-                  const member = members.find(m => m.userId === split.userId);
-                  const isCurrentUser = split.userId === currentUserId;
+                  const member = membersList.find(m => m.id === split.userId);
+                  const isCurrentUser = split.userId === user?.id;
                   const isLastPerson = index === expenseSplits.length - 1;
                   const isAutoAdjusted = isLastPerson && expenseSplits.length > 1;
                   
                   return (
                     <div key={split.userId} className="flex items-center space-x-3">
                       <span className={`w-32 text-sm font-medium ${isCurrentUser ? 'text-blue-600' : ''} ${isAutoAdjusted ? 'text-green-600' : ''}`}>
-                        {isCurrentUser ? 'You' : member?.user.name || member?.user.username}
+                        {isCurrentUser ? 'You' : member?.name || member?.username}
                         {isAutoAdjusted && <span className="text-xs text-green-500 block">(auto)</span>}
                       </span>
                       

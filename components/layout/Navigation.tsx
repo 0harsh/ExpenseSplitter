@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { clearAuthCookie } from '@/app/lib/auth';
+import { clearAuthCookie } from '@/lib/auth';
 import Logo from './Logo';
 
 export default function Navigation() {

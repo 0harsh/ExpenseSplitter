@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { prisma } from '@/app/lib/prisma';
-import { verifyAuthToken, authCookieOptions } from '@/app/lib/auth';
-import { buildDebtMatrix } from '@/app/lib/debtMatrix';
+import { prisma } from '@/lib/prisma';
+import { verifyAuthToken, authCookieOptions } from '@/lib/auth';
+import { buildDebtMatrix } from '@/lib/debtMatrix';
 
 export async function GET(
   request: NextRequest,
@@ -97,14 +97,8 @@ export async function GET(
     for (const member of groupMembers) {
       if (member.userId === currentUserId) continue;
 
-      // In skew-symmetric matrix: debts[u1][u2] = what u1 owes u2
-      // Since the matrix is skew-symmetric, debts[u1][u2] = -debts[u2][u1]
-      // Therefore, we only need to look at one direction to get the net balance
-      // debts[member.userId][currentUserId] = what member owes to currentUser
-      // For net balance, positive = they owe me, negative = I owe them
       const netAmount = debts[member.userId]?.[currentUserId] || 0;
 
-      // Only include if there's a net balance (positive or negative)
       if (Math.abs(netAmount) > 0.01) { // Small threshold to avoid floating point issues
         netBalancesList.push({
           userId: member.userId,

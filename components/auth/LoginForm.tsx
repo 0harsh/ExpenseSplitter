@@ -31,7 +31,6 @@ export default function LoginForm() {
 
       // Redirect to dashboard or home page
       router.push('/dashboard');
-      router.refresh();
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {

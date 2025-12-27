@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from 'react';
 
+import { User } from '@/components/groups/types';
+import OptimalSettlementPlan from '@/lib/utils/OptimalSettlementPlan';
+import { useGroup } from '@/lib/GroupContext';
+
+
 interface SettlementTransaction {
   fromUserId: string;
-  fromUserName: string;
+  fromUser: User;
   toUserId: string;
-  toUserName: string;
+  toUser: User;
   amount: number;
 }
+
+
 
 interface OptimalSettlementsData {
   transactions: SettlementTransaction[];
@@ -29,23 +36,44 @@ export default function SettleAllExpenses({ groupId, currentUserId }: SettleAllE
   const [error, setError] = useState<string | null>(null);
   const [executingTransaction, setExecutingTransaction] = useState<string | null>(null);
 
+  const {group, loading: groupLoading, error: groupError} = useGroup();
+
   useEffect(() => {
-    fetchOptimalSettlements();
-  }, [groupId]);
+    if (group) fetchOptimalSettlements();
+  }, [groupId, group]);
 
   const fetchOptimalSettlements = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/groups/${groupId}/optimal-settlements`, {
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const data: OptimalSettlementsData = await response.json();
-        setSettlementsData(data);
-      } else {
-        setError('Failed to fetch optimal settlements');
+
+      if (!group) {
+        setSettlementsData({
+          transactions: [],
+          totalTransactions: 0,
+          totalAmount: 0,
+          groupMembers: 0,
+          maxPossibleTransactions: 0,
+        });
+        setError(null);
+        return;
       }
+
+      const groupMembers = group.members ?? [];
+      const debts = group.debtMatrix ?? {};
+
+      const res: SettlementTransaction[] = OptimalSettlementPlan({ debtMatrix: debts, groupMembers });
+
+      const Data: OptimalSettlementsData = {
+        transactions: res,
+        totalTransactions: res.length,
+        totalAmount: res.reduce((sum, t) => sum + t.amount, 0),
+        groupMembers: groupMembers.length,
+        maxPossibleTransactions: Math.max(0, groupMembers.length - 1),
+      };
+
+      setSettlementsData(Data);
+      setError(null);
+
     } catch (error) {
       console.error('Error fetching optimal settlements:', error);
       setError('Error loading optimal settlements');
@@ -191,9 +219,9 @@ export default function SettleAllExpenses({ groupId, currentUserId }: SettleAllE
                         </div>
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            <span className="text-red-600">{transaction.fromUserName}</span>
+                            <span className="text-red-600">{transaction.fromUser.name}</span>
                             <span className="text-gray-500 mx-2">pays</span>
-                            <span className="text-green-600">{transaction.toUserName}</span>
+                            <span className="text-green-600">{transaction.toUser.name}</span>
                           </div>
                           <div className="text-xs text-gray-500">
                             {isCurrentUserPaying && 'You are paying'}
@@ -261,3 +289,5 @@ export default function SettleAllExpenses({ groupId, currentUserId }: SettleAllE
     </div>
   );
 }
+
+

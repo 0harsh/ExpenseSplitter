@@ -1,38 +1,34 @@
 'use client';
 
 import { useState } from 'react';
-
-interface User {
-  id: string;
-  name: string;
-  username: string;
-}
+import { useGroup } from '@/lib/GroupContext';
+import { useUser } from '@/lib/UserContext';
 
 interface CustomPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  groupId: string;
-  members: User[];
-  currentUserId: string;
 }
 
-export default function CustomPaymentModal({
-  isOpen,
-  onClose,
-  onSuccess,
-  groupId,
-  members,
-  currentUserId,
-}: CustomPaymentModalProps) {
+export default function CustomPaymentModal({ isOpen, onClose, onSuccess }: CustomPaymentModalProps) {
+  const { group } = useGroup();
+  const { user } = useUser();
+
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter out current user from members list
-  const otherMembers = members.filter(member => member.id !== currentUserId);
+  const currentUserId = user?.id ?? '';
+
+  // Pull members from group and normalize if necessary
+  const rawMembers = group?.members ?? [];
+  const normalizedMembers = Array.isArray(rawMembers)
+    ? rawMembers.map((m: any) => (m && m.user ? m.user : m)).filter(Boolean)
+    : [];
+
+  const otherMembers = normalizedMembers.filter((member: any) => member?.id !== currentUserId);
   
   // If no other members, show error
   if (otherMembers.length === 0) {
@@ -78,7 +74,13 @@ export default function CustomPaymentModal({
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/groups/${groupId}/custom-payment`, {
+      const gid = group?.id;
+      if (!gid) {
+        setError('Group id unavailable');
+        return;
+      }
+
+      const response = await fetch(`/api/groups/${gid}/custom-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

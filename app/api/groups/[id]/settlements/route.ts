@@ -1,3 +1,5 @@
+
+
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
@@ -37,21 +39,12 @@ export async function GET(
     }
 
     // Fetch expenses for the group
-    const expenses = await prisma.expense.findMany({
+    const settlements = await prisma.settlement.findMany({
       where: { groupId: groupId },
-      include: {
-        paidBy: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-          },
-        },
-      },
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(expenses);
+    return NextResponse.json(settlements);
   } catch (error) {
     console.error('Error fetching group expenses:', error);
     return NextResponse.json(

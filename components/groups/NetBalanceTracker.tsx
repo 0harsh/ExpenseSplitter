@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useGroup } from '@/lib/GroupContext';
+import { useUser } from '@/lib/UserContext';
+import createDebtMatrix from '@/lib/utils/debtMatrix';
 
 interface NetBalance {
   userId: string;
@@ -14,47 +17,89 @@ interface NetBalanceData {
   currentUserId: string;
 }
 
-interface NetBalanceTrackerProps {
-  groupId: string;
-  currentUserId: string;
-}
 
-export default function NetBalanceTracker({ groupId, currentUserId }: NetBalanceTrackerProps) {
+export default function NetBalanceTracker() {
+  const { group } = useGroup();
+  const { user } = useUser();
+
   const [netBalanceData, setNetBalanceData] = useState<NetBalanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [settlementLoading, setSettlementLoading] = useState(false);
 
-  useEffect(() => {
-    fetchNetBalances();
-  }, [groupId]);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
-  const fetchNetBalances = async () => {
+
+  const fetchNetBalances = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/groups/${groupId}/net-balances`, {
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNetBalanceData(data);
-      } else {
-        setError('Failed to fetch net balance information');
+      setError(null);
+
+      setCurrentUserId(user?.user?.id ?? '');
+      console.log(user?.user?.id ?? '');
+      console.log(currentUserId);
+
+      if (!group || !currentUserId) {
+        console.log(group);
+        console.log(user);
+        setNetBalanceData({ netBalances: [], currentUserId });
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching net balance data:', error);
-      setError('Error loading net balance information');
+
+      const netBalances: NetBalance[] = [];
+      const rawMembers = group.members || [];
+
+      // Normalize members: some endpoints return membership wrappers { user } while others return plain users
+      const membersList = rawMembers.map((m: any) => (m && m.user ? m.user : m));
+      const memberIds = membersList.map((m: any) => m.id);
+
+      // Prefer server-provided debtMatrix; otherwise build using normalized user ids
+      const debtMatrix = group.debtMatrix && Object.keys(group.debtMatrix).length > 0
+        ? group.debtMatrix
+        : createDebtMatrix(memberIds, group.expenses || [], group.settlements || []);
+
+      for (const member of membersList) {
+        if (member.id === currentUserId) continue;
+
+        const netAmount = debtMatrix[currentUserId]?.[member.id] || 0;
+
+        if (netAmount !== 0) {
+          netBalances.push({
+            userId: member.id,
+            userName: member.name || member.username || 'Unknown',
+            netAmount,
+            type: netAmount > 0 ? 'owed' : 'owes',
+          });
+        }
+      }
+
+      console.log(netBalances);
+
+      setNetBalanceData({ netBalances, currentUserId });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error computing net balances:', err);
+      setError('Error computing net balances');
     } finally {
       setLoading(false);
     }
-  };
+  }, [group, currentUserId]);
+
+  useEffect(() => {
+    fetchNetBalances();
+  }, [group]);
 
   const handleSettleDebt = async (userId: string, maxAmount: number) => {
     // For instant settlement, directly call the API
     try {
       setSettlementLoading(true);
-      const response = await fetch(`/api/groups/${groupId}/settle`, {
+      const gid = group?.id;
+      if (!gid) {
+        setError('Group id not available');
+        return;
+      }
+
+      const response = await fetch(`/api/groups/${gid}/settle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
